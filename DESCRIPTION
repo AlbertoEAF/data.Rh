@@ -1,0 +1,13 @@
+Package: data.Rh
+Type: Package
+Title: Data manipulation helpers (adds convenient operations)
+Version: 0.1.0
+Author: Alberto Eduardo Artilheiro Ferreira
+Maintainer: Alberto Eduardo Artilheiro Ferreira <albertoeafworks@gmail.com>
+Description: Data manipulation helpers.
+License: GPL
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1.9000
+Depends: data.table,
+    assertthat
