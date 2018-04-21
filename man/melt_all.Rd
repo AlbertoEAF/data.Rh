@@ -13,6 +13,9 @@ melt_all(data, variable.factor = F, ...)
 
 \item{...}{- all other params of the}
 }
+\value{
+molten data.table where all variables are measure.vars
+}
 \description{
 Same as melt but melts all columns in the data.table
 }

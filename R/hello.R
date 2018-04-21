@@ -5,6 +5,9 @@
 #' @param data - data.table
 #' @param variable.factor (default=FALSE) - same as in data.table but with new default
 #' @param ...  - all other params of the
+#' @return molten data.table where all variables are measure.vars
+#'
+#' @export
 melt_all <- function(data, variable.factor=F, ...) {
   assertthat::assert_that(is.data.table(data))
   melt(data, measure.vars=names(data), variable.factor=variable.factor, ...)
@@ -30,9 +33,18 @@ coltypes <- function(data) {
   types    <- melt_all(data[, lapply(.SD, typeof   )], value.name="type")
   factors  <- melt_all(data[, lapply(.SD, is.factor)], value.name="is_factor")
   numerics <- melt_all(data[, lapply(.SD, is.numeric)], value.name="is_numeric")
-  merge(merge(types,factors), numerics)
+  modes    <- melt_all(data[, lapply(.SD, mode)], value.name="mode")
+  classes  <- melt_all(data[, lapply(.SD, class)], value.name="class")
+  #merge(merge(merge(types, numerics), merge(modes,factors)), classes)
+  merge(merge(merge(classes,modes), merge(types,numerics)), factors)
 }
 
+#' as.numeric but with suppressed warnings function
+#'
+#' @param value input value
+#' @return value cast to numeric type
+#' @export
+silent.as.numeric <- function(x) { suppressWarnings(as.numeric(x)) }
 
 #' Applies a function to columns of a data.table
 #'
@@ -95,7 +107,6 @@ colapply <- function(data, fn,
   if (inplace)
     data[, (renamed_selected_cols) := lapply(.SD, fn), .SDcols=selected_cols, by=by]
   else
-
     data[, { # rename the result list after applying the function
       result <- lapply(.SD, fn)
       names(result) <- renamed_selected_cols
@@ -103,5 +114,24 @@ colapply <- function(data, fn,
       }, .SDcols=selected_cols, by=by]
 }
 
+#' Converts a vector to data.table
+#'
+#' If the vector has names, such names are passed
+#' to the output data.table's column names.
+#'
+#' @param vec vector to be converted (can have names).
+#' @return data.table with 1 row and cols named V1,...Vn for unnamed vectors or the names of the vector entries as column names
+#' @export
+vector.to.data.table <- function(vec) {
+  assert_that(is.vector(vec))
+  table <- data.table(matrix(vec, nrow=1))
+  if (!is.null(names(vec)))
+    names(table) <- names(vec)
+  return (table)
+}
 
-
+#' mapply after concatenating input data
+#' @param fn function
+#' @param ... all remaining mapply parameters
+#' @export
+cmapply <- function(fn, ...) {mapply(function(...){fn(c(...))}, ...)}
